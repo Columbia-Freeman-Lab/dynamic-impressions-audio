@@ -307,7 +307,8 @@ export const questionsContent = {
                 type: "comment",
                 name: "interruption",
                 visibleIf: "{interrupted} = 'Yes'",
-                title: "If possible, describe for which video(s) this occurred"
+                title: "If possible, describe for which video(s) this occurred",
+                isRequired: true
             }
         ],
     completeText: "Continue",
