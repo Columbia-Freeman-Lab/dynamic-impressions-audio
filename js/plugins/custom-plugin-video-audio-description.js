@@ -241,8 +241,10 @@ var jsPsychVideoAudioDescription = (function (jspsych) {
                         if (videoPlayer.currentTime - lastPauseTime <= (trial.pause_cooldown / 1000)) {
                             // Don't pause if too early
                             instructions.textContent = trial.early_pause_instruction_text;
+                            instructions.classList.add('instruction-text--warn');
                             setTimeout(() => {
                                 instructions.textContent = trial.default_instruction_text;
+                                instructions.classList.remove('instruction-text--warn');
                             }, 1500);
                             return;
                         } else {
