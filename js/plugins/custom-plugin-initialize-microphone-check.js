@@ -93,7 +93,6 @@ var jsPsychInitializeMicrophoneCheck = (function (jspsych) {
 					echoCancellation: trial.audio_processing,
 					noiseSuppression: trial.audio_processing,
 					autoGainControl: trial.audio_processing,
-					channelCount: { exact: 1 } // Force mono recording
 				}
 			});
 
