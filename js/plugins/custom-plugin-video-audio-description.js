@@ -59,6 +59,18 @@ var jsPsychVideoAudioDescription = (function (jspsych) {
                 default: 2000,
                 description: "Duration in milliseconds before the video can be paused again after resuming."
             },
+            main_recording_timeout: {
+                type: jspsych.ParameterType.INT,
+                pretty_name: "Main Recording Timeout",
+                default: 600000,
+                description: "Maximum duration in milliseconds of the main recording (before final impression). The trial ends if exceeded."
+            },
+            final_recording_timeout: {
+                type: jspsych.ParameterType.INT,
+                pretty_name: "Final Recording Timeout",
+                default: 180000,
+                description: "Maximum duration in milliseconds of the final impressions recording). The trial ends if exceeded."
+            },
             demo: {
                 type: jspsych.ParameterType.BOOL,
                 pretty_name: "Demo",
@@ -109,6 +121,10 @@ var jsPsychVideoAudioDescription = (function (jspsych) {
             /* Base64 encoded audio */
             audio: {
                 type: jspsych.ParameterType.STRING
+            },
+            /* Whether or not the audio timed out */
+            timeout: {
+                type: jspsych.ParameterType.BOOL
             },
             /* The response time in milliseconds for the participant to complete the trial */
             rt: {
@@ -176,6 +192,9 @@ var jsPsychVideoAudioDescription = (function (jspsych) {
                 let recordedChunks = [];
                 let audioBase64 = null;
                 let loadResolver = null;
+                let mainTimer = null;
+                let finalTimer = null;
+                let ended = false;
 
                 // Set up audio visualizer
                 const viz = micVisualizer.setup(recorder.stream, visualizer, "bars");
@@ -211,6 +230,7 @@ var jsPsychVideoAudioDescription = (function (jspsych) {
                     viz.start();
                     recordingStartTime = performance.now();
                     recorder.start();
+                    mainTimer = setTimeout(() => endTrial(true), trial.main_recording_timeout);
                     window.addEventListener("keydown", spacebarListener);
                     videoPlayer.addEventListener("click", videoClickListener);
                 }, { once: true });
@@ -288,6 +308,27 @@ var jsPsychVideoAudioDescription = (function (jspsych) {
                 // Set initial state
                 changeState("paused", false);
 
+                // Save data upon completion
+                const endTrial = async (timedOut) => {
+                    if (ended) return;
+                    ended = true;
+                    clearTimeout(mainTimer);
+                    clearTimeout(finalTimer);
+                    window.removeEventListener("keydown", spacebarListener);
+                    videoPlayer.removeEventListener("click", videoClickListener);
+                    videoPlayer.pause();
+                    viz.stop();
+                    addEvent("end");
+                    await stopRecording();
+                    resolve({
+                        response: events,
+                        audio: audioBase64,
+                        video: trial.video,
+                        timeout: timedOut,
+                        rt: Math.round(performance.now() - startTime)
+                    });
+                };
+
                 // On video end, show continue button
                 videoPlayer.onended = () => {
 
@@ -303,6 +344,7 @@ var jsPsychVideoAudioDescription = (function (jspsych) {
                     continueBtn.style.display = "block";
                     continueBtn.addEventListener('click', () => {
                         recorder.pause();
+                        clearTimeout(mainTimer);
                         addEvent("final");
                         continueBtn.style.display = "none";
                         videoContainer.style.display = "none";
@@ -316,25 +358,14 @@ var jsPsychVideoAudioDescription = (function (jspsych) {
                     // Start final recording button
                     recordBtn.addEventListener('click', () => {
                         recorder.resume();
+                        finalTimer = setTimeout(() => endTrial(true), trial.final_recording_timeout);
                         recordBtn.style.display = "none";
                         viz.start();
                         submitBtn.style.display = "block";
                     }, { once: true });
 
                     // Submit button
-                    submitBtn.onclick = async () => {
-                        // End the trial
-                        addEvent("end");
-                        await stopRecording();
-                        let rt = Math.round(performance.now() - startTime);
-                        const trialData = {
-                            response: events,
-                            audio: audioBase64,
-                            video: trial.video,
-                            rt: rt
-                        };
-                        resolve(trialData);
-                    }
+                    submitBtn.onclick = () => endTrial(false);
                 };
             });
         }
