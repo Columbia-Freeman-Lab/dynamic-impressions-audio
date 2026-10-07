@@ -298,6 +298,19 @@ export const questionsContent = {
         [
             {
                 type: "radiogroup",
+                name: "mic_type",
+                title: "Was the microphone you used today...",
+                choices: [
+                    "Integrated within your computer",
+                    "Integrated within a wireless headset (e.g., Bluetooth)",
+                    "Integrated within a wired headset",
+                    "A standalone microphone, separate from a headset",
+                ],
+                showOtherItem: true,
+                isRequired: true
+            },
+            {
+                type: "radiogroup",
                 name: "interrupted",
                 title: "Were you interrupted at any point during this study?",
                 choices: ["Yes", "No"],
