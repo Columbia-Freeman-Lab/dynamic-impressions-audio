@@ -5,7 +5,6 @@ import * as utils from "./utils.js";
 import * as content from "./content.js";
 
 const startTime = new Date().toLocaleString(); // Records the date and time at the start of the study
-export let complete = false; // This is set to true at the end of the study to indicate completion and 
 const timeline = []; // Creates the experiment timeline
 
 // --- Get Prolific ID from URL ---
@@ -165,6 +164,7 @@ const startMessageTrial = {
 
 
 // --- Video trial ---
+let timedOut = false;
 
 const videoTrial = {
     type: jsPsychVideoAudioDescription,
@@ -173,8 +173,17 @@ const videoTrial = {
     on_finish: function (data) {
         const cleanVideoName = data.video.split('/').pop().replace(/\.[^/.]+$/, "");
         data.audio = saveAudio(cleanVideoName, data.audio);
+        timedOut = data.timeout;
     },
     data: { trial_name: "video" }
+};
+
+const timeoutMessage = {
+    type: jsPsychHtmlButtonResponse,
+    stimulus: `<p>This trial took longer than 10 minutes and thus was skipped due to file size constraints.</p>
+              <p> Please be briefer in your responses</p>`,
+    choices: ["Continue"],
+    data: { trial_name: "timeout_message" }
 };
 
 
@@ -230,7 +239,8 @@ const videoTimeline = {
     timeline: [
         checkFullscreen(),
         videoTrial,
-        ratingTrial
+        { timeline: [timeoutMessage], conditional_function: () => timedOut },
+        { timeline: [ratingTrial], conditional_function: () => !timedOut }
     ],
     timeline_variables: videoTimelineVariables
 };
