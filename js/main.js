@@ -152,6 +152,9 @@ const demoTrial = {
     demo: true,
     video: "../assets/demo.mp4",
     debug_logs: config.DEBUG_LOGS,
+    on_finish: function (data) {
+        data.audio = "";
+    },
     data: { trial_name: "demo" }
 };
 
@@ -176,14 +179,6 @@ const videoTrial = {
         timedOut = data.timeout;
     },
     data: { trial_name: "video" }
-};
-
-const timeoutMessage = {
-    type: jsPsychHtmlButtonResponse,
-    stimulus: `<p>This trial took longer than 10 minutes and thus was skipped due to file size constraints.</p>
-              <p> Please be briefer in your responses</p>`,
-    choices: ["Continue"],
-    data: { trial_name: "timeout_message" }
 };
 
 
@@ -239,7 +234,6 @@ const videoTimeline = {
     timeline: [
         checkFullscreen(),
         videoTrial,
-        { timeline: [timeoutMessage], conditional_function: () => timedOut },
         { timeline: [ratingTrial], conditional_function: () => !timedOut }
     ],
     timeline_variables: videoTimelineVariables

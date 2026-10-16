@@ -38,7 +38,7 @@ var jsPsychVideoAudioDescription = (function (jspsych) {
             end_instruction_text: {
                 type: jspsych.ParameterType.HTML_STRING,
                 pretty_name: "End Instruction Text",
-                default: "After you finish verbalizing your impression, click the \"Continue\" button.",
+                default: "After you finish verbalizing your impressions, click the \"Continue\" button.",
                 description: "Text displayed above the video after it ends."
             },
             early_pause_instruction_text: {
@@ -49,8 +49,8 @@ var jsPsychVideoAudioDescription = (function (jspsych) {
             },
             final_impressions_text: {
                 type: jspsych.ParameterType.HTML_STRING,
-                pretty_name: "Final Instruction Text",
-                default: "Click \"Start Recording\" and verbalize your final impression of the speaker. Click \"Submit\" when done.",
+                pretty_name: "Final Impressions Text",
+                default: "Click \"Start Recording\" and verbalize your final impressions of the speaker. Click \"Submit\" when done.",
                 description: "Text displayed above the audio visualizer during final impressions."
             },
             pause_cooldown: {
@@ -63,13 +63,19 @@ var jsPsychVideoAudioDescription = (function (jspsych) {
                 type: jspsych.ParameterType.INT,
                 pretty_name: "Main Recording Timeout",
                 default: 600000,
-                description: "Maximum duration in milliseconds of the main recording (before final impression). The trial ends if exceeded."
+                description: "Maximum duration in milliseconds of the main recording (before final impressions). The trial ends if exceeded."
             },
             final_recording_timeout: {
                 type: jspsych.ParameterType.INT,
                 pretty_name: "Final Recording Timeout",
                 default: 180000,
-                description: "Maximum duration in milliseconds of the final impressions recording). The trial ends if exceeded."
+                description: "Maximum duration in milliseconds of the final impressions recording. The trial ends if exceeded."
+            },
+            timeout_text: {
+                type: jspsych.ParameterType.HTML_STRING,
+                pretty_name: "Timeout Text",
+                default: "This trial took too long and thus was skipped due to file size constraints.\nPlease be briefer in your responses.",
+                description: "Text displayed when the study times out."
             },
             demo: {
                 type: jspsych.ParameterType.BOOL,
@@ -320,13 +326,33 @@ var jsPsychVideoAudioDescription = (function (jspsych) {
                     viz.stop();
                     addEvent("end");
                     await stopRecording();
-                    resolve({
-                        response: events,
-                        audio: audioBase64,
-                        video: trial.video,
-                        timeout: timedOut,
-                        rt: Math.round(performance.now() - startTime)
-                    });
+
+                    const finish = () => {
+                        resolve({
+                            response: events,
+                            audio: audioBase64,
+                            video: trial.video,
+                            timeout: timedOut,
+                            rt: Math.round(performance.now() - startTime)
+                        });
+                    };
+
+                    if (timedOut) {
+                        display_element.innerHTML = `
+                            <div class="trial-container">
+                                <div class="instructions-container">
+                                    <h3 id="instructions" class="instruction-text">${trial.timeout_text}</h3>
+                                </div>
+                                <div class="response-container">
+                                    <button id="timeout-continue-btn" class="jspsych-btn">Continue</button>
+                                </div>
+                            </div>`;
+                        display_element
+                            .querySelector("#timeout-continue-btn")
+                            .addEventListener("click", finish, { once: true });
+                    } else {
+                        finish();
+                    }
                 };
 
                 // On video end, show continue button
