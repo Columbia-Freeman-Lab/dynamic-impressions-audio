@@ -32,6 +32,22 @@ export const screenerContent = {
                 [
                     {
                         type: "radiogroup",
+                        name: "headphones",
+                        title: "This study requires the use of headphones. If you haven't already, please take a moment to setup your headphones for the ret of this study.",
+                        choices: [
+                            {
+                                value: "yes_headphones",
+                                text: "I am using my headphones now."
+                            },
+                            {
+                                value: "no_headphones",
+                                text: "I do not have headphones or am not using them for this study."
+                            }
+                        ],
+                        isRequired: true
+                    },
+                    {
+                        type: "radiogroup",
                         name: "mic",
                         title: "This study requires the use of a microphone to record yourself speaking.",
                         choices: [
@@ -296,6 +312,16 @@ export const ratingContent = {
 export const questionsContent = {
     elements:
         [
+            {
+                type: "radiogroup",
+                name: "headphones_check",
+                title: "Did you use headphones during this study?",
+                choices: [
+                    "Yes",
+                    "No",
+                ],
+                isRequired: true
+            },
             {
                 type: "radiogroup",
                 name: "mic_type",
