@@ -151,7 +151,7 @@ function checkFullscreen() {
 const demoTrial = {
     type: jsPsychVideoAudioDescription,
     demo: true,
-    video: "../assets/demo.mp4",
+    video: "assets/demo.mp4",
     debug_logs: config.DEBUG_LOGS,
     on_finish: function (data) {
         data.audio = "";
