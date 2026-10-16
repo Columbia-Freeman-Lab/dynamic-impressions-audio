@@ -154,6 +154,8 @@ var jsPsychInitializeMicrophoneCheck = (function (jspsych) {
 
 			this.previewStream = await navigator.mediaDevices.getUserMedia({ audio: { deviceId } });
 			const visualizer = display_element.querySelector("#mic-visualizer");
+			const oldWrapper = display_element.querySelector("#mic-visualizer-wrapper");
+			if (oldWrapper) oldWrapper.replaceWith(visualizer);
 			this.viz = micVisualizer.setup(this.previewStream, visualizer);
 			this.viz.start();
 		}
